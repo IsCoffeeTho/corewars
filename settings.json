@@ -1,0 +1,41 @@
+{
+	"game":
+	{
+		"event":
+		{
+			"name" : "CoreWars 42 Adelaide",
+			"desc" : "Tryout Event Blackeye vs Galactus"
+		},
+		"teams":
+		[
+			{
+				"name": "Blackeye",
+				"player": "amenadue",
+				"color": "#444",
+				"codepath": "code/A.red"
+			},
+			{
+				"name": "Galactus",
+				"player": "hlucas",
+				"color": "#855",
+				"codepath": "code/B.red"
+			}
+		]
+	},
+	"view" : {
+		"board":
+		{
+			"size" : "780px",
+			"defaultBack": "#000"
+		},
+		"theme":
+		{
+			"background": "#111",
+			"foreground": "#eee"
+		}
+	},
+	"server":
+	{
+		"port" : 3000
+	}
+}

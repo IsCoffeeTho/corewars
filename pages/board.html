@@ -1,0 +1,30 @@
+<html>
+	<head>
+		<link rel="stylesheet" href="/static/style.css">
+		<script src="/static/board.js"></script>
+		<meta id="TEAM_A_CLR" color="{{TEAM_A_CLR}}" />
+		<meta id="TEAM_B_CLR" color="{{TEAM_B_CLR}}" />
+		<meta id="TEAM_A_PTR" color="{{TEAM_A_PTR}}" />
+		<meta id="TEAM_B_PTR" color="{{TEAM_B_PTR}}" />
+	</head>
+	<body onload="init()">
+		<center>
+			<h1 u>{{name}}</h1>
+		</center>
+		<acenter>
+			<div row>
+				<div team>
+					<h2 u><font color="{{TEAM_A_CLR}}">{{TEAM_A_NAME}}</font></h2>
+					<t e91m>{{TEAM_A_PLYR}}</t>
+				</div>
+				<canvas id="board" height="{{SIZE}}" width="{{SIZE}}" style="background : black;"></canvas>
+				<div team>
+					<h2 u><font color="{{TEAM_B_CLR}}">{{TEAM_B_NAME}}</font></h2>
+					<div>
+						<t e91m>{{TEAM_B_PLYR}}</t>
+					</div>
+				</div>
+			</div>
+		</acenter>
+	</body>
+</html>

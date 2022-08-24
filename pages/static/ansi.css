@@ -1,0 +1,44 @@
+*[e1m] {font-weight: bold;}
+*[e2m] {font-weight: light;}
+*[e3m] {font-style: italic;}
+*[e4m] {text-decoration-line: underline;}
+*[e9m] {text-decoration-line: line-through;}
+*[e21m] {text-decoration-line : underline; text-decoration-style: double;}
+*[e22m] {font-weight : normal;}
+*[e23m] {font-style : normal;}
+*[e24m] {text-decoration : none;}
+
+*[e40m] {background : rgb(0,0,0);}
+*[e41m] {background : rgb(170, 0, 0);}
+*[e42m] {background : rgb(0, 170, 0);}
+*[e43m] {background : rgb(170, 170, 0);}
+*[e44m] {background : rgb(0, 0, 170);}
+*[e45m] {background : rgb(170, 0, 170);}
+*[e46m] {background : rgb(0, 170, 170);}
+*[e47m] {background : rgb(170, 170, 170);}
+*[e100m] {background : rgb(85, 85, 85);}
+*[e101m] {background : rgb(255, 85, 85);}
+*[e102m] {background : rgb(85, 255, 85);}
+*[e103m] {background : rgb(255, 255, 85);}
+*[e104m] {background : rgb(85, 85, 255);}
+*[e105m] {background : rgb(255, 85, 255);}
+*[e106m] {background : rgb(85, 255, 255);}
+*[e107m] {background : rgb(255, 255, 255);}
+
+
+*[e30m] {color : rgb(0,0,0);}
+*[e31m] {color : rgb(170, 0, 0);}
+*[e32m] {color : rgb(0, 170, 0);}
+*[e33m] {color : rgb(170, 170, 0);}
+*[e34m] {color : rgb(0, 0, 170);}
+*[e35m] {color : rgb(170, 0, 170);}
+*[e36m] {color : rgb(0, 170, 170);}
+*[e37m] {color : rgb(170, 170, 170);}
+*[e90m] {color : rgb(85, 85, 85);}
+*[e91m] {color : rgb(255, 85, 85);}
+*[e92m] {color : rgb(85, 255, 85);}
+*[e93m] {color : rgb(255, 255, 85);}
+*[e94m] {color : rgb(85, 85, 255);}
+*[e95m] {color : rgb(255, 85, 255);}
+*[e96m] {color : rgb(85, 255, 255);}
+*[e97m] {color : rgb(255, 255, 255);}
