@@ -1,1 +1,0 @@
-SCTF{begginer_friendly}

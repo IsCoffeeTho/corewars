@@ -1,7 +1,7 @@
 <html>
 	<head>
 		<link rel="stylesheet" href="/style.css">
-		<script src="/static/scripts/login.js"></script>
+		<script src="/static/scripts/signup.js"></script>
 	</head>
 	<body>
 		<center>
@@ -9,11 +9,12 @@
 		</center>
 		<acenter>
 			<form>
-				<t b>Login to panel</t>
+				<t b>Sign up in panel</t>
 				&nbsp;
 				<input id="CW_USER" placeholder="Username" i b/>
 				<input id="CW_PASS" type="password" placeholder="Password" i b/>
-				<input type="button" value="Log In" onclick="attemptLogin()" b/>
+				<input id="CW_PASS_C" type="password" placeholder="Password Confirm" i b/>
+				<input type="button" value="Log In" onclick="attemptSignup()" b/>
 				<t id="err" e91m></t>
 			</form>
 		</acenter>

@@ -3,8 +3,8 @@
 	{
 		"event":
 		{
-			"name" : "CoreWars 42 Adelaide",
-			"desc" : "Tryout Event Blackeye vs Galactus"
+			"name" : "CoreWars 42 Test",
+			"desc" : "Blackeye vs Galactus"
 		},
 		"teams":
 		[
@@ -25,13 +25,13 @@
 	"view" : {
 		"board":
 		{
-			"size" : "780px",
+			"size" : "640px",
 			"defaultBack": "#000"
 		},
 		"theme":
 		{
 			"background": "#111",
-			"foreground": "#eee"
+			"foreground": "#ccc"
 		}
 	},
 	"server":
