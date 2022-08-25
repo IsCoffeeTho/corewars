@@ -55,7 +55,7 @@ form>input[i]:focus
 	border-bottom : 1px solid #aaf;
 }
 
-form>input[type="button"]
+form>input[type="submit"]
 {
 	border : none;
 	cursor : hand;

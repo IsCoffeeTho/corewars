@@ -8,12 +8,12 @@
 			<h1 u>{{name}}</h1>
 		</center>
 		<acenter>
-			<form>
+			<form onsubmit="return false;">
 				<t b>Login to panel</t>
 				&nbsp;
-				<input id="CW_USER" placeholder="Username" i b/>
+				<input id="CW_USER" type="text" placeholder="Username" i b/>
 				<input id="CW_PASS" type="password" placeholder="Password" i b/>
-				<input type="button" value="Log In" onclick="attemptLogin()" b/>
+				<input type="submit" value="Log In" onclick="attemptLogin()" b/>
 				<t id="err" e91m></t>
 			</form>
 		</acenter>

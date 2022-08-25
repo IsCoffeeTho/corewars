@@ -8,15 +8,15 @@
 			<h1 u>{{name}}</h1>
 		</center>
 		<acenter>
-			<form>
+			<form onsubmit="return false;">
 				<t b>Sign up in panel</t>
 				&nbsp;
 				<input id="CW_USER" placeholder="Username" i b/>
 				<input id="CW_PASS" type="password" placeholder="Password" i b/>
 				<input id="CW_PASS_C" type="password" placeholder="Password Confirm" i b/>
-				<input type="button" value="Log In" onclick="attemptSignup()" b/>
-				<t id="err" e91m></t>
+				<input type="submit" value="Log In" onclick="attemptSignup()" b/>
 			</form>
+			<t id="err" e91m>&nbsp;</t>
 		</acenter>
 	</body>
 </html>
