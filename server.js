@@ -9,6 +9,13 @@ const { env } = require("process");
 
 const { Session } = require("inspector");
 
+function errTranslate(err)
+{
+	return {
+		"EXP_SESSION": "The session expired!"
+	}[err] || "&nbsp;";
+}
+
 class userSystem
 {
 	#secure;
@@ -32,7 +39,7 @@ class userSystem
 					admin: list[id].admin || false
 				};
 				this.#secure[id] = {
-					password: list[id].password	
+					password: list[id].passHASH
 				};
 				this.dict[list[id].username] = id;
 			}
@@ -47,7 +54,7 @@ class userSystem
 			data[i] = {
 				username: this.users[i].username,
 				admin: this.users[i].admin,
-				...this.#secure[i]
+				passHASH: this.#secure[i].password
 			};
 		}
 		fs.writeFile(`${__dirname}/.users.json`, JSON.stringify(data), (err) => {console.error(err);});
@@ -76,15 +83,9 @@ class userSystem
 	authorize(username, password)
 	{
 		if (this.dict[username])
-		{
 			if (this.#secure[this.dict[username]])
-			{
 				if (this.#secure[this.dict[username]].password == hash(this.dict[username] + password))
-				{
 					return true;
-				}
-			}
-		}
 		return false;
 	}
 
@@ -92,9 +93,7 @@ class userSystem
 	{
 		var str = "";
 		for (var i = 0; i < (size || 32); i++)
-		{
 			str += "0123456789abcdef"[Math.floor(Math.random()*16)];
-		}
 		return str;
 	}
 }
@@ -112,20 +111,27 @@ class session
 		this.id = (function () {
 			var str = "";
 			for (var i = 0; i < 32; i++)
-			{
 				str += "0123456789abcdef"[Math.floor(Math.random()*16)];
-			}
 			return str;
 		})();
 		this.user = usr.users[userid];
-		this.admin = (this.user.admin || false);
+		this.isAdmin = (this.user.admin || false);
 	}
 
-	get alive()
+	get isAlive()
 	{
 		if ((this.birthTimestamp + (SESSIONLIFETIME * 1000)) >= Date.now())
 			return true;
 		return false;
+	}
+
+	dump()
+	{
+		return {
+			birthTimestamp: this.birthTimestamp,
+			user: this.user,
+			isAlive: this.isAlive
+		};
 	}
 }
 
@@ -155,9 +161,7 @@ app.get("/", (req, res) => {
 	});
 });
 
-app.get("/boardstr", (req, res) => {
-	res.type("text/plain").send(instance.rendered);
-});
+app.get("/boardstr", (req, res) => {res.type("text/plain").send(instance.rendered);});
 
 app.get("/style.css", (req, res) => {
 	fs.readFile(`${path.join(__dirname, 'pages')}/style.css`, (err, data) => {
@@ -198,57 +202,92 @@ app.get("/board", (req, res) => {
 	});
 });
 
+app.get("/reset", (req, res) => {
+	if (sessions[req.cookies.session] && sessions[req.cookies.session].isAdmin)
+	{
+		if (instance.running) console.log("Game Paused");
+		console.log("Game Reset");
+		instance.halted = false;
+		instance.running = false;
+		instance.setupBoard();
+			res.type("text/json").send(JSON.stringify({code:'OK',msg:`Board has been reset.`}));
+	}
+	else
+		res.status(403).type("text/json").send(JSON.stringify({code:'INVALID_PERMISSION',msg:`Only ADMINS can reset the board.`}));
+});
+
 app.get("/step", (req, res) => {
-	console.log("Stepped");
-	res.type("text/plain").send(instance.stepBoard() ? "Stepped" : "Halted");
+	if (sessions[req.cookies.session] && sessions[req.cookies.session].isAdmin)
+	{
+		console.log("Stepped");
+		if (instance.stepBoard())
+			res.type("text/json").send(JSON.stringify({code:'OK',msg:`Instance has been stepped.`}));
+		else
+			res.type("text/json").send(JSON.stringify({code:'NO_ACTION',msg:`Instance can't be stepped. All Programs have been halted`}));
+	}
+	else
+		res.status(403).type("text/json").send(JSON.stringify({code:'INVALID_PERMISSION',msg:`Only ADMINS can step instances.`}));
 });
 
 app.get("/pause", (req, res) => {
-	if (instance.running)
+	if (sessions[req.cookies.session] && sessions[req.cookies.session].isAdmin)
 	{
-		instance.running = false;
-		res.type("text/plain").send("Paused");
-		console.log("Game Paused");
+		if (instance.running)
+		{
+			instance.running = false;
+			res.type("text/json").send(JSON.stringify({code:'OK',msg:`Instance has been paused.`}));
+			console.log("Game Paused");
+		}
+		else
+			res.type("text/json").send(JSON.stringify({code:'NO_ACTION',msg:`Instance is already paused.`}));
 	}
 	else
-	{
-		res.type("text/plain").send("Not Running");
-	}
+		res.status(403).type("text/json").send(JSON.stringify({code:'INVALID_PERMISSION',msg:`Only ADMINS can pause instances.`}));
 });
 
+var ENGINE_LOOP;
+
 app.get("/run", (req, res) => {
-	if (!instance.running)
+	if (sessions[req.cookies.session] && sessions[req.cookies.session].isAdmin)
 	{
-		res.type("text/plain").send("Running");
-		console.log("Running Game");
-		new Promise((res, rej) => {
-			setInterval(function()
-			{
-				if (instance.running)
+		if (!instance.running)
+		{
+			res.type("text/json").send(JSON.stringify({code:'OK',msg:`Instance started.`}));
+			console.log("Running Game");
+			new Promise((resolve, reject) => {
+				clearInterval(ENGINE_LOOP);
+				ENGINE_LOOP = setInterval(function()
 				{
-					if (!instance.stepBoard())
+					if (instance.running)
 					{
-						console.log("Game Halted");
-						instance.running = false;
-						res();
+						if (!instance.stepBoard())
+						{
+							console.log("Game Halted");
+							instance.running = false;
+							resolve();
+						}
 					}
-				}
-				else
-				{
-					res();
-				}
-			}, 2);
-		});
-		instance.running = true;
+					else
+						resolve();
+				}, 2);
+			});
+			instance.running = true;
+		}
+		else
+			res.type("text/json").send(JSON.stringify({code:'NO_ACTION',msg:`Instance is already running.`}));
 	}
 	else
-	{
-		res.type("text/plain").send("Already Running");
-	}
+		res.status(403).type("text/json").send(JSON.stringify({code:'INVALID_PERMISSION',msg:`Only ADMINS can start instances.`}));
 });
 
 app.get("/dump", (req, res) => {
-	res.type("text/json").send(instance.infoDump());
+	if (sessions[req.cookies.session]
+		&& sessions[req.cookies.session].isAdmin)
+	{
+		res.type("text/json").send(instance.infoDump());
+	}
+	else
+		res.status(403).type("text/json").send(JSON.stringify({code:'INVALID_PERMISSION',msg:`Only ADMINS can view infoDumps.`}));
 });
 
 app.get("/login", (req, res) => {
@@ -259,6 +298,7 @@ app.get("/login", (req, res) => {
 				{
 					case "name": return instance.event.name;
 					case "desc": return instance.event.desc;
+					case "err": return errTranslate(req.query['err']);
 					default: return "";
 				}
 			})
@@ -274,6 +314,7 @@ app.get("/signup", (req, res) => {
 				{
 					case "name": return instance.event.name;
 					case "desc": return instance.event.desc;
+					case "err": return errTranslate(req.query['err']);
 					default: return "";
 				}
 			})
@@ -283,9 +324,9 @@ app.get("/signup", (req, res) => {
 
 app.post("/login", (req, res) => {
 	var data = JSON.parse(req.body);
-	if (!data.username) { res.status(400).send(JSON.stringify({code:'BAD_FORMAT',msg:`Incorrectly formatted data "username".`})); return; }
-	if (!data.password) { res.status(400).send(JSON.stringify({code:'BAD_FORMAT',msg:`Incorrectly formatted data "password".`})); return; }
-	if (!usr.authorize(data.username, data.password)) { res.status(400).send(JSON.stringify({code:'BAD_AUTH',msg:`Invalid username/password.`})); return; }
+	if (!data.username) { res.status(400).type("text/json").send(JSON.stringify({code:'BAD_FORMAT',msg:`Incorrectly formatted data "username".`})); return; }
+	if (!data.password) { res.status(400).type("text/json").send(JSON.stringify({code:'BAD_FORMAT',msg:`Incorrectly formatted data "password".`})); return; }
+	if (!usr.authorize(data.username, data.password)) { res.status(400).type("text/json").send(JSON.stringify({code:'BAD_AUTH',msg:`Invalid username/password.`})); return; }
 	var sess = new session(usr.dict[data.username]);
 	sessions[sess.id] = sess;
 	res.status(200).cookie('session', sess.id, { expires: new Date(Date.now() + (SESSIONLIFETIME * 1000)) }).send(JSON.stringify({code:"OK",msg:`Logged In!`}));
@@ -293,24 +334,21 @@ app.post("/login", (req, res) => {
 
 app.post("/signup", (req, res) => {
 	var data = JSON.parse(req.body);
-	if (!data.username) { res.status(400).send(JSON.stringify({code:'BAD_FORMAT',msg:`Incorrectly formatted data "username"`})); return; }
-	if (!data.password) { res.status(400).send(JSON.stringify({code:'BAD_FORMAT',msg:`Incorrectly formatted data "password"`})); return; }
-	if (usr.dict[data.username]) { res.status(400).send(JSON.stringify({code:'AUTH_EXISTS',msg:`Username taken.`})); return; }
-	if (data.username.length < 3) { res.status(400).send(JSON.stringify({code:'BAD_FORMAT',msg:`Username MUST be atleast 3 characters.`})); return; }
-	if (data.password.length < 3) { res.status(400).send(JSON.stringify({code:'BAD_FORMAT',msg:`password MUST be atleast 3 characters.`})); return; }
+	if (!data.username) { res.status(400).type("text/json").send(JSON.stringify({code:'BAD_FORMAT',msg:`Incorrectly formatted data "username"`})); return; }
+	if (!data.password) { res.status(400).type("text/json").send(JSON.stringify({code:'BAD_FORMAT',msg:`Incorrectly formatted data "password"`})); return; }
+	if (usr.dict[data.username]) { res.status(400).type("text/json").send(JSON.stringify({code:'AUTH_EXISTS',msg:`Username taken.`})); return; }
+	if (data.username.length < 3) { res.status(400).type("text/json").send(JSON.stringify({code:'BAD_FORMAT',msg:`Username MUST be atleast 3 characters.`})); return; }
+	if (data.password.length < 3) { res.status(400).type("text/json").send(JSON.stringify({code:'BAD_FORMAT',msg:`password MUST be atleast 3 characters.`})); return; }
 	var user = usr.newUser(data.username, data.password);
 	var sess = new session(user.id);
 	sessions[sess.id] = sess;
-	res.status(200).cookie('session', sess.id, { expires: new Date(Date.now() + (SESSIONLIFETIME * 1000)) }).send(JSON.stringify({code:"OK",msg:`Account Created!`}));
+	res.status(200).cookie('session', sess.id, { expires: new Date(Date.now() + (SESSIONLIFETIME * 1000)) }).type("text/json").send(JSON.stringify({code:"OK",msg:`Account Created!`}));
 });
 
 app.get("/panel", (req, res) => {
-	if (
-		sessions[req.cookies.session]
-		&& sessions[req.cookies.session].alive
-	)
+	if (sessions[req.cookies.session])
 	{
-		if (sessions[req.cookies.session].admin)
+		if (sessions[req.cookies.session].isAdmin)
 		{
 			fs.readFile(`${path.join(__dirname, 'pages')}/panel.html`, (err, data) => {
 				res.send(data.toString()
@@ -319,6 +357,7 @@ app.get("/panel", (req, res) => {
 						{
 							case "name": return instance.event.name;
 							case "desc": return instance.event.desc;
+							case "username": return sessions[req.cookies.session].user.username;
 							default: return "";
 						}
 					})
@@ -340,7 +379,7 @@ app.get("/panel", (req, res) => {
 		}
 	}
 	else
-		res.redirect('/login');
+		res.redirect("/login?err=EXP_SESSION");
 });
 
 app.get("/*", (req, res) => {

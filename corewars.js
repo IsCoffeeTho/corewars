@@ -125,7 +125,6 @@ class corewarsInstance
 		this.halted = false;
 		this.running = false;
 		this.setupBoard();
-		this.renderString();
 	}
 
 	/** Place code from teams onto the board */
@@ -144,6 +143,7 @@ class corewarsInstance
 			}
 			this.teams[i].ptr = start;
 		}
+		this.renderString();
 	}
 
 	/** Steps through an execution cycle of the board */
@@ -157,7 +157,7 @@ class corewarsInstance
 				var team = this.teams[i];
 				if (!team.halted)
 				{
-					stopped = false;
+					stopped = true;
 					var ptr = team.ptr;
 					var value = this.board[ptr];
 					
@@ -198,11 +198,11 @@ class corewarsInstance
 							break;
 						default:
 							team.halted = true;
-							stopped = true;
 							break;
 					}
 					team.ptr++;
 					team.ptr %= ARENASIZE;
+					if (stopped && !team.halted) stopped = false; 
 				}
 			}
 			this.renderString();

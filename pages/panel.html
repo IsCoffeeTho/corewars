@@ -1,12 +1,29 @@
 <html>
 	<head>
-		<link rel="stylesheet" href="/style.css">
-		<link rel="stylesheet" href="/static/styles/panel.css">
+		<link rel="stylesheet" href="/style.css" />
+		<link rel="stylesheet" href="/static/styles/panel.css" />
+		<script src="/static/scripts/panel.js"></script>
 	</head>
 	<body>
-		<div>
-			<h1>{{name}}</h1>
-			<h2>{{desc}}</h2>
-		</center>
+		<div head>
+			<div l>
+				<h2>Corewar Admin Panel</h2>
+			</div>
+			<div c>
+				<h3>{{name}}</h3>
+			</div>
+			<div r>
+				<h3>{{username}}</h3>
+			</div>
+		</div>
+		<div content>
+			<button onclick="sendAction('run')">Run</button>
+			<button onclick="sendAction('pause')">Pause</button>
+			<button onclick="sendAction('step')">Step</button>
+			<button onclick="sendAction('reset')">Reset</button>
+		</div>
+		<div id="notification">
+			Sample Notification
+		</div>
 	</body>
 </html>
