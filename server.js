@@ -18,11 +18,10 @@ function errTranslate(err)
 
 class userSystem
 {
-	#secure;
 	/** Generates a system to handle users */
 	constructor()
 	{
-		this.#secure = [];
+		this.secure = [];
 		this.users = [];
 		this.dict = [];
 		this.deserialize();
@@ -31,6 +30,10 @@ class userSystem
 	deserialize()
 	{
 		fs.readFile(`${__dirname}/.users.json`, (err, data) => {
+			if (err && err.errno == -2)
+			{
+				return ;
+			}
 			var list = JSON.parse(data.toString());
 			for (var id in list)
 			{
@@ -38,7 +41,7 @@ class userSystem
 					username: list[id].username,
 					admin: list[id].admin || false
 				};
-				this.#secure[id] = {
+				this.secure[id] = {
 					password: list[id].passHASH
 				};
 				this.dict[list[id].username] = id;
@@ -54,7 +57,7 @@ class userSystem
 			data[i] = {
 				username: this.users[i].username,
 				admin: this.users[i].admin,
-				passHASH: this.#secure[i].password
+				passHASH: this.secure[i].password
 			};
 		}
 		fs.writeFile(`${__dirname}/.users.json`, JSON.stringify(data), (err) => {console.error(err);});
@@ -68,7 +71,7 @@ class userSystem
 			id = userSystem.genid();
 			
 		this.dict[username] = id;
-		this.#secure[id] = {
+		this.secure[id] = {
 			password: hash(id + password)
 		};
 		this.users[id] = {
@@ -83,8 +86,8 @@ class userSystem
 	authorize(username, password)
 	{
 		if (this.dict[username])
-			if (this.#secure[this.dict[username]])
-				if (this.#secure[this.dict[username]].password == hash(this.dict[username] + password))
+			if (this.secure[this.dict[username]])
+				if (this.secure[this.dict[username]].password == hash(this.dict[username] + password))
 					return true;
 		return false;
 	}
@@ -186,7 +189,7 @@ app.get("/board", (req, res) => {
 				{
 					case "name": return instance.event.name;
 					case "desc": return instance.event.desc;
-					case "SIZE": return settings.view?.board?.size || 500;
+					case "SIZE": return (settings.view.board.size ? settings.view.board.size : 500) || 500;
 					case "TEAM_A_NAME": return instance.teams[0].name.toUpperCase();
 					case "TEAM_A_PLYR": return instance.teams[0].player;
 					case "TEAM_A_CLR": return instance.teams[0].color;
